@@ -1,70 +1,67 @@
+// main.go
 package main
 
 import (
 	"bufio"
 	"fmt"
-	"io"
-	"net/http"
+	"github.com/atotto/clipboard"
 	"os"
 	"strings"
 )
 
 func main() {
-	var url string
+    clear()
 
-	// Check if a URL argument is provided
-	if len(os.Args) > 1 {
-		url = os.Args[1]
-	} else {
-		// No URL argument, prompt user for URL
-		url = promptForURL()
+	url := getURLFromArgsOrPrompt()
+	if !isValidQiwiURL(url) {
+		return
+	}
+    newLink, fileName := processURL(url)
+		if newLink == "" {
+		return
 	}
 
-	// Process the URL
-	processURL(url)
+	handleDownloadDecision(newLink, fileName)
 }
 
-func promptForURL() string {
+func getURLFromArgsOrPrompt() string {
+	if len(os.Args) > 1 {
+		return os.Args[1]
+	}
+
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter download link: ")
 	url, _ := reader.ReadString('\n')
 	return strings.TrimSpace(url)
 }
 
-func processURL(url string) {
-	resp, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Error while sending request:", err)
-		return
+func isValidQiwiURL(url string) bool {
+	if strings.HasPrefix(url, "https://qiwi.gg/folder") {
+		fmt.Println("Error: Folder handling isn't implemented at the moment.")
+		return false
+	}  else if !strings.HasPrefix(url, "https://qiwi.gg/file") {
+		fmt.Println("Error: Invalid URL. Only qiwi.gg/file URLs are supported.")
+		return false
 	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error while reading response:", err)
-		return
-	}
-	bodyString := string(body)
-
-	slug := extractBetween(bodyString, "\\\"slug\\\":\\\"", "\\\"")
-	fileName := extractBetween(bodyString, "\\\"fileName\\\":\\\"", "\\\"")
-	ext := fileName[strings.LastIndex(fileName, ".")+1:]
-
-	fmt.Printf("https://qiwi.lol/%s.%s\n", slug, ext)
+	return true
 }
 
-// extractBetween finds a substring between two delimiters
-func extractBetween(s, start, end string) string {
-	startIndex := strings.Index(s, start)
-	if startIndex == -1 {
-		return ""
-	}
-	startIndex += len(start)
+func confirmDownload() bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Do you want to download the file? (y/n): ")
+	response, _ := reader.ReadString('\n')
+	return strings.HasPrefix(strings.TrimSpace(strings.ToLower(response)), "y")
+}
 
-	endIndex := strings.Index(s[startIndex:], end)
-	if endIndex == -1 {
-		return ""
+func handleDownloadDecision(newLink, fileName string) {
+	if confirmDownload() {
+		downloadFile(newLink, fileName)
+	} else {
+		err := clipboard.WriteAll(newLink)
+		if err != nil {
+			fmt.Println("Failed to copy to clipboard:", err)
+		} else {
+			fmt.Println("Download link copied to clipboard.")
+		}
 	}
-
-	return s[startIndex : startIndex+endIndex]
 }
