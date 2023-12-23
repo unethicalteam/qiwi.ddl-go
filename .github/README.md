@@ -8,3 +8,7 @@ i.e. spyderrock, texturepackguy, and now qiwi.lol
 `qiwiddl.exe` prompts for a download link
 
 download available in [releases](https://github.com/unethicalteam/qiwi.ddl-go/releases)
+
+### use the website
+below are instructions on using the website instead. (https://qiwiddl.unethical.team/) <br>
+pass the qiwi.gg/file URL as a parameter; i.e. `https://qiwiddl.unethical.team/?url=https://qiwi.gg/xxx`
