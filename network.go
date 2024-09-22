@@ -32,7 +32,7 @@ func processURL(url string) (string, string) {
 	}
 
 	ext := extractExtension(fileName)
-	newLink := fmt.Sprintf("https://qiwi.lol/%s.%s", slug, ext)
+	newLink := fmt.Sprintf("https://spyderrock.com/%s.%s", slug, ext)
 	fmt.Println("New Download Link:", newLink)
 
 	return newLink, fileName
